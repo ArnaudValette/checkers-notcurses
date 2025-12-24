@@ -12,7 +12,11 @@ struct notcurses *init() {
    */
   notcurses_options opts = {.flags = NCOPTION_SUPPRESS_BANNERS,
                             .loglevel = NCLOGLEVEL_SILENT};
-  return notcurses_init(&opts, stdout);
+  struct notcurses *nc = notcurses_init(&opts, stdout);
+  if(nc == NULL) return NULL;
+  int code = notcurses_mice_enable(nc, NCMICE_MOVE_EVENT | NCMICE_BUTTON_EVENT);
+  if(code == -1) return NULL;
+  return nc;
 }
 
 struct ncvisual *generate_board(V2 dim) {

@@ -17,7 +17,6 @@ int main(int c, char **v) {
   (void)c;
   (void)v;
 
-  int code = 0;
   unsigned int x, y, cX, cY;
   struct notcurses *nc = NULL;
   struct ncplane *stdplane = NULL;
@@ -27,12 +26,8 @@ int main(int c, char **v) {
 
   if ((nc = init()) == NULL) exit(-1);
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
-
   board = stamp(stdplane, generate_board, v2(0), v2(600), V2(cY, cX));
   blit_stamp(nc, board);
-
-  code = notcurses_mice_enable(nc, NCMICE_MOVE_EVENT | NCMICE_BUTTON_EVENT);
-  _CHECK((code == -1), code = -3);
 
   notcurses_render(nc);
 
