@@ -58,8 +58,6 @@ void *handle_input(void *_arg) {
       pthread_cond_broadcast(&poll_cv);
     }
     pthread_mutex_unlock(&poll_mtx);
-
-    usleep(10);
   }
 
   return NULL;
