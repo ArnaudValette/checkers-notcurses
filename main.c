@@ -25,18 +25,14 @@ int main(int c, char **v) {
   (void)warn;
 
   if ((nc = init()) == NULL) exit(-1);
+
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
   board = stamp(stdplane, generate_board, v2(0), v2(600), V2(cY, cX));
   blit_stamp(nc, board);
-
   notcurses_render(nc);
 
-  pthread_t t;
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  struct input_handler_arg arg = {.nc = nc};
-  pthread_create(&t, &attr, handle_input, &arg);
-  pthread_attr_destroy(&attr);
+  iTHREAD(t, attr_t, arg_t, {.nc = nc});
+  rTHREAD(t, attr_t, handle_input, arg_t);
 
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec) {

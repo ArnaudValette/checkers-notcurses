@@ -3,14 +3,9 @@
 #include <notcurses/notcurses.h>
 #include <stdint.h>
 
-/**
- * @brief Abort execution if condition is true
- * 
- * @param cond Condition to test
- * @param exp Expression executed before abort
- * @warning A ret: label should exist !
- */
-#define _CHECK(cond, exp) do{ if(cond){ exp; goto ret;}} while(0);
+#define iTHREAD(name, attrname,argname, arg) pthread_t name;pthread_attr_t attrname;pthread_attr_init(&attrname);struct input_handler_arg argname= arg;
+
+#define rTHREAD(name, attrname,fun,argname) pthread_create(&name, &attrname, fun, &argname) ;pthread_attr_destroy(&attrname);
 
 int main(int c, char**v);
 
