@@ -35,17 +35,17 @@ int main(int c, char **v) {
   rTHREAD(t, attr_t, handle_input, arg_t);
 
   pthread_mutex_lock(&poll_mtx);
-  while (!stop_exec) {
+  while (!stop_exec_mutex) {
 
-    while (!stop_exec && !ui_dirty) {
+    while (!stop_exec_mutex && !ui_dirty_mutex) {
       pthread_cond_wait(&poll_cv, &poll_mtx);
     }
 
-    if (stop_exec) {
+    if (stop_exec_mutex) {
       break;
     }
 
-    ui_dirty = 0;
+    ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
     ncvisual_rotate(board->visual, (M_PI / 2.0));
     blit_stamp(nc, board);
