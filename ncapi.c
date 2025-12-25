@@ -13,16 +13,19 @@ struct notcurses *init() {
   notcurses_options opts = {.flags = NCOPTION_SUPPRESS_BANNERS,
                             .loglevel = NCLOGLEVEL_SILENT};
   struct notcurses *nc = notcurses_init(&opts, stdout);
-  if(nc == NULL) return NULL;
+  if (nc == NULL) return NULL;
   int code = notcurses_mice_enable(nc, NCMICE_MOVE_EVENT | NCMICE_BUTTON_EVENT);
-  if(code == -1) return NULL;
+  if (code == -1) return NULL;
   return nc;
 }
 
-struct ncvisual *generate_board(V2 dim) {
+struct ncvisual *generate_board(void *_args) {
+  gen_board_args *args = _args;
+  V2 dim = args->dim;
+  u8 sz = args->sz;
   uint32_t *buff = malloc(dim.y * dim.x * sizeof(uint32_t));
   if (buff == NULL) return NULL;
-  int cellsz = dim.x / 8;
+  int cellsz = dim.x / sz;
   for (ui y = 0; y < dim.y; y++) {
     for (ui x = 0; x < dim.x; x++) {
       uint32_t col =
@@ -45,8 +48,8 @@ struct ncplane *stdplane_util(struct notcurses *nc, unsigned int *y,
   return stdplane;
 }
 
-Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(V2), V2 pos, V2 spx,
-             V2 sz) {
+Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(void *args),
+             void *args, V2 pos, V2 spx, V2 sz) {
   Stamp *s = malloc(sizeof(Stamp));
   s->popts = (struct ncplane_options){.y = pos.y,
                                       .x = pos.x,
@@ -57,7 +60,7 @@ Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(V2), V2 pos, V2 spx,
 
   s->vopts = (struct ncvisual_options){
       .n = s->plane, .scaling = NCSCALE_STRETCH, .blitter = NCBLIT_PIXEL};
-  s->visual = f(spx);
+  s->visual = f(args);
   return s;
 }
 

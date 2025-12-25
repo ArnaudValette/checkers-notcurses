@@ -5,6 +5,8 @@
 #define v2(y_) ((V2){.x=(y_),.y=(y_)})
 
 
+#define _NONMOVE 255
+#define _PREKILL 254
 #include <stdint.h>
 typedef unsigned int ui;
 typedef uint8_t u8;

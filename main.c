@@ -1,4 +1,5 @@
 #include "main.h"
+#include "board.h"
 #include "globals.h"
 #include "input.h"
 #include "ncapi.h"
@@ -26,8 +27,10 @@ int main(int c, char **v) {
 
   if ((nc = init()) == NULL) exit(-1);
 
+  initBoard();
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
-  board = stamp(stdplane, generate_board, v2(0), v2(600), V2(cY, cX));
+  gen_board_args gen_args = {.dim = v2(600), .sz=10};
+  board = stamp(stdplane, generate_board, (void *)&gen_args ,v2(0), v2(600), V2(cY, cX));
   blit_stamp(nc, board);
   notcurses_render(nc);
 

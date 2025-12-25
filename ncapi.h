@@ -21,7 +21,7 @@ typedef struct stamp{
  *  @return A ready to blit data structure (see: #Stamp).
  *  @warning to be freed with #free_stamp
  */
-Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(V2), V2 pos, V2 spx, V2 sz);
+Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(void *args), void *args, V2 pos, V2 spx, V2 sz);
 
 /**
  * Blit shortcut.
@@ -38,11 +38,17 @@ void free_stamp(Stamp *s);
  */
 struct notcurses *init();
 
+typedef struct {
+  V2 dim;
+  u8 sz;
+}
+gen_board_args;
+
 /**
  * Example implementation of a #stamp f parameter.
  * (uses #ncvisual_from_rgba to create a 8x8 checker board)
  */
-struct ncvisual *generate_board(V2 dim);
+struct ncvisual *generate_board(void * args);
 
 /**
  * stdplane generation shortcut.
