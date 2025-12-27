@@ -26,9 +26,9 @@ void draw_board(FrameBuffer *fb, ui cellsPerRow) {
     for (ui x = 0; x < cellsPerRow; x++) {
       uint32_t color;
       if (y % 2 == x % 2) {
-        color = 0xFF000000;
-      } else {
         color = 0xFFFFFFFF;
+      } else {
+        color = 0xFF000000;
       }
       draw_rectangle(fb, color, V2(y * cellSize, x * cellSize), v2(cellSize));
     }

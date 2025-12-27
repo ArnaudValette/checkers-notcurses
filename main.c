@@ -36,6 +36,7 @@ int main(int c, char **v) {
   FrameBuffer fb = {.buf = NULL, .dim = v2(0)};
   Stamp *board = NULL;
   Stamp *warn = NULL;
+  u8 *game_board = getBoard();
   (void)warn;
 
   if ((nc = init()) == NULL) exit(-1);
@@ -46,7 +47,16 @@ int main(int c, char **v) {
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
 
   draw_board(&fb, N_CELLS);
-  draw_pawn(&fb, 0xFF0000FF, 20, V2(1, 2), N_CELLS);
+  for (int i = 0; i < 100; i++) {
+    int y = i / 10;
+    int x = i % 10;
+    u8 val = game_board[i];
+    if (val == 1) {
+      draw_pawn(&fb, 0xFF00FFFF, 20, V2(y, x), N_CELLS);
+    } else if (val == 2) {
+      draw_pawn(&fb, 0xFF0000FF, 20, V2(y, x), N_CELLS);
+    }
+  }
   board = stamp(stdplane, &fb, v2(0), V2(cY, cX));
   if (board == NULL) goto ret;
   blit_stamp(nc, board);
@@ -56,7 +66,7 @@ int main(int c, char **v) {
   iTHREAD(t, attr_t, arg_t, {.nc = nc});
   rTHREAD(t, attr_t, handle_input, arg_t);
 
-  double rotation = 0.1;
+  // double rotation = 0.1;
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
 
@@ -71,8 +81,8 @@ int main(int c, char **v) {
     ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
     replace_stamp_buffer(board, &fb);
-    ncvisual_rotate(board->visual, rotation);
-    rotation += 0.1;
+    // ncvisual_rotate(board->visual, rotation);
+    // rotation += 0.1;
     blit_stamp(nc, board);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);
