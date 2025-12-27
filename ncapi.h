@@ -1,9 +1,13 @@
 #ifndef NCAPI_H
 #define NCAPI_H
-#include "draw.h"
 #include "types.h"
 #include <notcurses/notcurses.h>
 #include <stdint.h>
+
+typedef struct {
+  uint32_t *buf;
+  V2 dim;
+} FrameBuffer;
 
 /**
  *  #Stamp, a convenient structure that links a ncplane, an ncvisual,
