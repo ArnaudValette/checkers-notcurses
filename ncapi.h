@@ -1,7 +1,9 @@
 #ifndef NCAPI_H
 #define NCAPI_H
+#include "draw.h"
 #include "types.h"
 #include <notcurses/notcurses.h>
+#include <stdint.h>
 
 /**
  *  #Stamp, a convenient structure that links a ncplane, an ncvisual,
@@ -15,13 +17,28 @@ typedef struct stamp{
   struct ncvisual_options vopts;
 } Stamp;
 
+
+typedef struct {
+  V2 dim;
+  u8 n_cells;
+}
+gen_board_args;
+
+typedef struct{
+  ui radius;
+  V2 container_sz;
+} gen_pawn_args;
+
+
 /**
- *  Ready to blit stamp. "f" handles the hard part, this is a shortcut (see: #generate_board)
+ *  Ready to blit stamp. 
  *
  *  @return A ready to blit data structure (see: #Stamp).
  *  @warning to be freed with #free_stamp
  */
-Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(void *args), void *args, V2 pos, V2 spx, V2 sz);
+Stamp *stamp(struct ncplane *root, FrameBuffer *buffer,  V2 pos, V2 size_cols_rows);
+
+Stamp *replace_stamp_buffer(Stamp *s, FrameBuffer *buffer);
 
 /**
  * Blit shortcut.
@@ -37,18 +54,6 @@ void free_stamp(Stamp *s);
  * #notcurses initialization shortcut
  */
 struct notcurses *init();
-
-typedef struct {
-  V2 dim;
-  u8 sz;
-}
-gen_board_args;
-
-/**
- * Example implementation of a #stamp f parameter.
- * (uses #ncvisual_from_rgba to create a 8x8 checker board)
- */
-struct ncvisual *generate_board(void * args);
 
 /**
  * stdplane generation shortcut.

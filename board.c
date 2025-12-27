@@ -3,6 +3,7 @@
 #include <bits/time.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <unistd.h>
 
 /* TODO: use bytefields */

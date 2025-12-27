@@ -1,7 +1,9 @@
 #include "ncapi.h"
+#include "draw.h"
 #include "types.h"
 #include <locale.h>
 #include <notcurses/notcurses.h>
+#include <stdint.h>
 
 struct notcurses *init() {
   setlocale(LC_ALL, "");
@@ -19,26 +21,6 @@ struct notcurses *init() {
   return nc;
 }
 
-struct ncvisual *generate_board(void *_args) {
-  gen_board_args *args = _args;
-  V2 dim = args->dim;
-  u8 sz = args->sz;
-  uint32_t *buff = malloc(dim.y * dim.x * sizeof(uint32_t));
-  if (buff == NULL) return NULL;
-  int cellsz = dim.x / sz;
-  for (ui y = 0; y < dim.y; y++) {
-    for (ui x = 0; x < dim.x; x++) {
-      uint32_t col =
-          ((y / cellsz) % 2 == (x / cellsz) % 2) ? 0xFF000000 : 0xFFFFFFFF;
-      buff[x + (y * dim.x)] = col;
-    }
-  }
-  struct ncvisual *nc = ncvisual_from_rgba(buff, dim.y, dim.x * 4, dim.x);
-  if (nc == NULL) return NULL;
-  free(buff);
-  return nc;
-}
-
 struct ncplane *stdplane_util(struct notcurses *nc, unsigned int *y,
                               unsigned int *x, unsigned int *celly,
                               unsigned int *cellx) {
@@ -48,19 +30,32 @@ struct ncplane *stdplane_util(struct notcurses *nc, unsigned int *y,
   return stdplane;
 }
 
-Stamp *stamp(struct ncplane *root, struct ncvisual *(*f)(void *args),
-             void *args, V2 pos, V2 spx, V2 sz) {
+Stamp *stamp(struct ncplane *root, FrameBuffer *buffer, V2 pos,
+             V2 size_cols_rows) {
   Stamp *s = malloc(sizeof(Stamp));
-  s->popts = (struct ncplane_options){.y = pos.y,
-                                      .x = pos.x,
-                                      .rows = spx.y / sz.y,
-                                      .cols = spx.x / sz.x,
+  s->popts = (struct ncplane_options){.y = pos.y / size_cols_rows.y,
+                                      .x = pos.x / size_cols_rows.x,
+                                      .rows = buffer->dim.y / size_cols_rows.y,
+                                      .cols = buffer->dim.x / size_cols_rows.x,
                                       .flags = 0};
   s->plane = ncplane_create(root, &s->popts);
 
+  s->visual = NULL;
+  if (replace_stamp_buffer(s, buffer) == NULL) return NULL;
+  return s;
+}
+
+Stamp *replace_stamp_buffer(Stamp *s, FrameBuffer *buffer) {
+  if (s->visual != NULL) {
+    ncvisual_destroy(s->visual);
+  }
   s->vopts = (struct ncvisual_options){
-      .n = s->plane, .scaling = NCSCALE_STRETCH, .blitter = NCBLIT_PIXEL};
-  s->visual = f(args);
+      .n = s->plane, .scaling = NCSCALE_SCALE, .blitter = NCBLIT_2x1};
+
+  struct ncvisual *nc = ncvisual_from_rgba(buffer->buf, buffer->dim.y,
+                                           buffer->dim.x * 4, buffer->dim.x);
+  if (nc == NULL) return NULL;
+  s->visual = nc;
   return s;
 }
 

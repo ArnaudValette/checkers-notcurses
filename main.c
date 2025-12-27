@@ -1,5 +1,6 @@
 #include "main.h"
 #include "board.h"
+#include "draw.h"
 #include "globals.h"
 #include "input.h"
 #include "ncapi.h"
@@ -14,6 +15,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+bool prepare_fb(FrameBuffer *fb, V2 sz) {
+  fb->buf = malloc(sz.x * sz.y * sizeof(uint32_t));
+  if (fb->buf == NULL) return 0;
+  fb->dim = sz;
+  return 1;
+}
+
+void free_fb(FrameBuffer *fb) { free(fb->buf); }
+
 int main(int c, char **v) {
   (void)c;
   (void)v;
@@ -21,6 +31,7 @@ int main(int c, char **v) {
   unsigned int x, y, cX, cY;
   struct notcurses *nc = NULL;
   struct ncplane *stdplane = NULL;
+  FrameBuffer fb = {.buf = NULL, .dim = v2(0)};
   Stamp *board = NULL;
   Stamp *warn = NULL;
   (void)warn;
@@ -28,10 +39,15 @@ int main(int c, char **v) {
   if ((nc = init()) == NULL) exit(-1);
 
   initBoard();
+  if (!prepare_fb(&fb, v2(600))) goto ret;
+
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
-  gen_board_args gen_args = {.dim = v2(600), .sz=10};
-  board = stamp(stdplane, generate_board, (void *)&gen_args ,v2(0), v2(600), V2(cY, cX));
+
+  draw_board(&fb, 10);
+  board = stamp(stdplane, &fb, v2(0), V2(cY, cX));
+  if (board == NULL) goto ret;
   blit_stamp(nc, board);
+
   notcurses_render(nc);
 
   iTHREAD(t, attr_t, arg_t, {.nc = nc});
@@ -50,7 +66,7 @@ int main(int c, char **v) {
 
     ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
-    ncvisual_rotate(board->visual, (M_PI / 2.0));
+    replace_stamp_buffer(board, &fb);
     blit_stamp(nc, board);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);
@@ -63,6 +79,7 @@ ret:
   pthread_join(t, NULL);
   free_stamp(board);
   if (nc != NULL) notcurses_stop(nc);
+  if (fb.buf != NULL) free_fb(&fb);
   printf("Gracefully shutdown...\n");
   return 0;
 }
