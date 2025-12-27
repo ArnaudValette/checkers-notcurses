@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define N_CELLS (10)
+
 bool prepare_fb(FrameBuffer *fb, V2 sz) {
   fb->buf = malloc(sz.x * sz.y * sizeof(uint32_t));
   if (fb->buf == NULL) return 0;
@@ -28,7 +30,7 @@ int main(int c, char **v) {
   (void)c;
   (void)v;
 
-  unsigned int x, y, cX, cY;
+  ui x, y, cX, cY;
   struct notcurses *nc = NULL;
   struct ncplane *stdplane = NULL;
   FrameBuffer fb = {.buf = NULL, .dim = v2(0)};
@@ -43,7 +45,8 @@ int main(int c, char **v) {
 
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
 
-  draw_board(&fb, 10);
+  draw_board(&fb, N_CELLS);
+  draw_pawn(&fb, 0xFF0000FF, 20, V2(1, 2), N_CELLS);
   board = stamp(stdplane, &fb, v2(0), V2(cY, cX));
   if (board == NULL) goto ret;
   blit_stamp(nc, board);
@@ -53,6 +56,7 @@ int main(int c, char **v) {
   iTHREAD(t, attr_t, arg_t, {.nc = nc});
   rTHREAD(t, attr_t, handle_input, arg_t);
 
+  double rotation = 0.1;
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
 
@@ -67,6 +71,8 @@ int main(int c, char **v) {
     ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
     replace_stamp_buffer(board, &fb);
+    ncvisual_rotate(board->visual, rotation);
+    rotation += 0.1;
     blit_stamp(nc, board);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);

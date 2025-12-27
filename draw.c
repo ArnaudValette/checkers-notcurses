@@ -2,6 +2,11 @@
 #include "types.h"
 #include <stdint.h>
 
+ui get_cellSize(FrameBuffer *fb, ui cellsPerRow) {
+  ui min = (fb->dim.x < fb->dim.y) ? fb->dim.x : fb->dim.y;
+  return min / cellsPerRow;
+}
+
 void draw_rectangle(FrameBuffer *fb, uint32_t color, V2 pos, V2 sz) {
   ui bound = fb->dim.x * fb->dim.y;
   for (ui y = pos.y; y < (pos.y + sz.y); y++) {
@@ -16,8 +21,7 @@ void draw_rectangle(FrameBuffer *fb, uint32_t color, V2 pos, V2 sz) {
 }
 
 void draw_board(FrameBuffer *fb, ui cellsPerRow) {
-  ui min = (fb->dim.x < fb->dim.y) ? fb->dim.x : fb->dim.y;
-  ui cellSize = min / cellsPerRow;
+  ui cellSize = get_cellSize(fb, cellsPerRow);
   for (ui y = 0; y < cellsPerRow; y++) {
     for (ui x = 0; x < cellsPerRow; x++) {
       uint32_t color;
@@ -31,26 +35,25 @@ void draw_board(FrameBuffer *fb, ui cellsPerRow) {
   }
 }
 
-/* FrameBuffer *generate_pawn() { */
-/*   gen_pawn_args *args = _args; */
-/*   ui radius = args->radius; */
-/*   V2 sz = args->container_sz; */
-/*   ui x = sz.x; */
-/*   ui y = sz.y; */
-/*   uint32_t *buffer = malloc(sz.y * sz.x * sizeof(uint32_t)); */
-/*   if (buffer == NULL) return NULL; */
-/*   ui xcenter = x / 2; */
-/*   ui ycenter = y / 2; */
+void draw_circle(FrameBuffer *fb, uint32_t color, ui r, V2 pos) {
+  ui dr = r * r;
+  for (ui y = pos.y - r; y < pos.y + r; y++) {
+    ui dy = (y - pos.y) * (y - pos.y);
+    ui _y = (fb->dim.x * y);
+    for (ui x = pos.x - r; x < pos.x + r; x++) {
+      ui dx = (x - pos.x) * (x - pos.x);
+      ui location = _y + x;
+      if (dx + dy < dr) {
+        fb->buf[location] = color;
+      }
+    }
+  }
+}
 
-/*   memset(buffer, 0, sz.y * sz.x * sizeof(uint32_t)); */
-/*   ui r_square = radius * radius; */
-/*   for (ui j = ycenter - radius; j < ycenter + radius; j++) { */
-/*     ui dy = (ycenter - j) * (ycenter - j); */
-/*     for (ui i = xcenter - radius; i < xcenter + radius; i++) { */
-/*       ui dx = (xcenter - i) * (xcenter - i); */
-/*       if (dx + dy < r_square) { */
-/*         buffer[j * x + i] = 0xFF0000FF; */
-/*       } */
-/*     } */
-/*   } */
-/* } */
+void draw_pawn(FrameBuffer *fb, uint32_t color, ui r, V2 cellPos,
+               ui cellsPerRow) {
+  ui cellSize = get_cellSize(fb, cellsPerRow);
+  ui xPos = (cellPos.x * cellSize) + (cellSize / 2);
+  ui yPos = (cellPos.y * cellSize) + (cellSize / 2);
+  draw_circle(fb, color, r, V2(yPos, xPos));
+}
