@@ -1,4 +1,5 @@
 #include "draw.h"
+#include "ncapi.h"
 #include "types.h"
 #include <stdint.h>
 
