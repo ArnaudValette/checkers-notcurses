@@ -1,5 +1,4 @@
 #include "ncapi.h"
-#include "draw.h"
 #include "types.h"
 #include <locale.h>
 #include <notcurses/notcurses.h>
@@ -50,7 +49,7 @@ Stamp *replace_stamp_buffer(Stamp *s, FrameBuffer *buffer) {
     ncvisual_destroy(s->visual);
   }
   s->vopts = (struct ncvisual_options){
-      .n = s->plane, .scaling = NCSCALE_SCALE, .blitter = NCBLIT_PIXEL};
+      .n = s->plane, .scaling = NCSCALE_SCALE, .blitter = NCBLIT_DEFAULT};
 
   struct ncvisual *nc = ncvisual_from_rgba(buffer->buf, buffer->dim.y,
                                            buffer->dim.x * 4, buffer->dim.x);
