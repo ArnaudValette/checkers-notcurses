@@ -6,7 +6,6 @@
 #include "ncapi.h"
 #include "types.h"
 #include <bits/pthreadtypes.h>
-#include <math.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
 #include <pthread.h>
