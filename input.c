@@ -30,7 +30,7 @@ void *handle_input(void *_arg) {
        mouse moving (y<0 || x<0) to be an ESC press on kitty and ghostty
      */
     pthread_mutex_lock(&poll_mtx);
-    if ((ni.id == NCKEY_ESC && ni.evtype == NCTYPE_RELEASE) || stop_exec_mutex) {
+    if ((ni.id == NCKEY_ESC && ni.evtype == NCTYPE_RELEASE) || stop_exec_mutex || ni.id == 'q') {
       stop_exec_mutex = 1;
       pthread_cond_broadcast(&poll_cv);
       pthread_mutex_unlock(&poll_mtx);
