@@ -60,9 +60,14 @@ int main(int c, char **v) {
   if (board == NULL) goto ret;
   blit_stamp(nc, board);
 
+  V2 dims = V2(0,0);
+  V2 cSz = V2(cY,cX);
+
+  ncplane_pixel_geom(board->plane, &dims.y, &dims.x, NULL, NULL, NULL, NULL);
   notcurses_render(nc);
 
-  iTHREAD(t, attr_t, arg_t, {.nc = nc});
+  struct input_handler_arg args = {.nc=nc, .cell_size=cSz, .dims=dims};
+  iTHREAD(t, attr_t, arg_t, args);
   rTHREAD(t, attr_t, handle_input, arg_t);
 
   // double rotation = 0.1;

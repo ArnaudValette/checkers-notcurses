@@ -1,15 +1,13 @@
 #include "input.h"
 #include "globals.h"
+#include "interaction.h"
+#include <notcurses/notcurses.h>
 #include <pthread.h>
 #include <stdbool.h>
 
 
-bool ui_changed(ncinput *ni) {
-  if (ni->id == NCKEY_ENTER) {
-    return true;
-  } else {
-    return false;
-  }
+bool ui_changed(ncinput *ni, V2 cell_size, V2 dims) {
+  return handle_actions(ni, cell_size, dims);
 }
 
 void *handle_input(void *_arg) {
@@ -37,7 +35,7 @@ void *handle_input(void *_arg) {
       break;
     }
 
-    if (ui_changed(&ni)) {
+    if (ui_changed(&ni, ctx->cell_size, ctx->dims)) {
       ui_dirty_mutex = 1;
       pthread_cond_broadcast(&poll_cv);
     }
