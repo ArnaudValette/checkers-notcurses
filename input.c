@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 
-bool ui_changed(ncinput *ni, V2 cell_size, V2 dims) {
-  return handle_actions(ni, cell_size, dims);
+bool ui_changed(ncinput *ni, V2 cell_size, V2 dims, char* debug) {
+  return handle_actions(ni, cell_size, dims, debug);
 }
 
 void *handle_input(void *_arg) {
@@ -35,7 +35,7 @@ void *handle_input(void *_arg) {
       break;
     }
 
-    if (ui_changed(&ni, ctx->cell_size, ctx->dims)) {
+    if (ui_changed(&ni, ctx->cell_size, ctx->dims, ctx->debug)) {
       ui_dirty_mutex = 1;
       pthread_cond_broadcast(&poll_cv);
     }

@@ -16,6 +16,21 @@
 
 #define N_CELLS (10)
 
+void draw(FrameBuffer *fb){
+  u8 *game_board = getBoard();
+  draw_board(fb, N_CELLS);
+  for (int i = 0; i < 100; i++) {
+    int y = i / 10;
+    int x = i % 10;
+    u8 val = game_board[i];
+    if (val == 1) {
+      draw_pawn(fb, 0xFF00FFFF, 20, V2(y, x), N_CELLS);
+    } else if (val == 2) {
+      draw_pawn(fb, 0xFF0000FF, 20, V2(y, x), N_CELLS);
+    }
+  }
+  
+}
 bool prepare_fb(FrameBuffer *fb, V2 sz) {
   fb->buf = malloc(sz.x * sz.y * sizeof(uint32_t));
   if (fb->buf == NULL) return 0;
@@ -45,28 +60,29 @@ int main(int c, char **v) {
 
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
 
-  draw_board(&fb, N_CELLS);
-  for (int i = 0; i < 100; i++) {
-    int y = i / 10;
-    int x = i % 10;
-    u8 val = game_board[i];
-    if (val == 1) {
-      draw_pawn(&fb, 0xFF00FFFF, 20, V2(y, x), N_CELLS);
-    } else if (val == 2) {
-      draw_pawn(&fb, 0xFF0000FF, 20, V2(y, x), N_CELLS);
-    }
-  }
+  draw(&fb);
   board = stamp(stdplane, &fb, v2(0), V2(cY, cX));
   if (board == NULL) goto ret;
   blit_stamp(nc, board);
 
   V2 dims = V2(0,0);
   V2 cSz = V2(cY,cX);
+  char debug[256];
+  for(int i = 0; i<256; i++){
+    debug[i]= '\0';
+  }
 
+  ncplane_options *o = malloc(sizeof(ncplane_options));
+  o->y=0;
+  o->x=0;
+  o->rows=2;
+  o->cols=80;
+
+  struct ncplane *debug_ui = ncplane_create(stdplane, o);
   ncplane_pixel_geom(board->plane, &dims.y, &dims.x, NULL, NULL, NULL, NULL);
   notcurses_render(nc);
 
-  struct input_handler_arg args = {.nc=nc, .cell_size=cSz, .dims=dims};
+  struct input_handler_arg args = {.nc=nc, .cell_size=cSz, .dims=dims, .debug=debug};
   iTHREAD(t, attr_t, arg_t, args);
   rTHREAD(t, attr_t, handle_input, arg_t);
 
@@ -87,7 +103,10 @@ int main(int c, char **v) {
     replace_stamp_buffer(board, &fb);
     // ncvisual_rotate(board->visual, rotation);
     // rotation += 0.1;
+    draw(&fb);
     blit_stamp(nc, board);
+    ncplane_home(debug_ui);
+    ncplane_putstr(debug_ui, debug);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);
   }
