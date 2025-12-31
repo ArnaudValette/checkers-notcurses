@@ -3,9 +3,9 @@
 #include "draw.h"
 #include "globals.h"
 #include "input.h"
+#include "logic.h"
 #include "ncapi.h"
 #include "types.h"
-#include <pthread.h>
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
 #include <pthread.h>
@@ -16,21 +16,26 @@
 
 #define N_CELLS (10)
 
-void draw(FrameBuffer *fb){
+void draw(FrameBuffer *fb) {
   u8 *game_board = getBoard();
   draw_board(fb, N_CELLS);
   for (int i = 0; i < 100; i++) {
-    int y = i / 10;
-    int x = i % 10;
+    int y = i / N_CELLS;
+    int x = i % N_CELLS;
     u8 val = game_board[i];
-    if (val == 1) {
-      draw_pawn(fb, 0xFF00FFFF, 20, V2(y, x), N_CELLS);
-    } else if (val == 2) {
-      draw_pawn(fb, 0xFF0000FF, 20, V2(y, x), N_CELLS);
+    if (val > 0) {
+      draw_pawn(fb, handleColor(x, y, val), 20, V2(y, x), N_CELLS);
+    }
+    if (i != getCurrPawn()) {
+      if (isReachable(i % 10, i / 10)) {
+        int col = i % 10;
+        int row = i / 10;
+        draw_reach(fb, 0xFF00AAAA, V2(row, col), 10);
+      }
     }
   }
-  
 }
+
 bool prepare_fb(FrameBuffer *fb, V2 sz) {
   fb->buf = malloc(sz.x * sz.y * sizeof(uint32_t));
   if (fb->buf == NULL) return 0;
@@ -55,7 +60,7 @@ int main(int c, char **v) {
 
   if ((nc = init()) == NULL) exit(-1);
 
-  initBoard();
+  initBoard(10, 10);
   if (!prepare_fb(&fb, v2(600))) goto ret;
 
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
@@ -65,28 +70,15 @@ int main(int c, char **v) {
   if (board == NULL) goto ret;
   blit_stamp(nc, board);
 
-  V2 dims = V2(0,0);
-  V2 cSz = V2(cY,cX);
-  char debug[256];
-  for(int i = 0; i<256; i++){
-    debug[i]= '\0';
-  }
-
-  ncplane_options *o = malloc(sizeof(ncplane_options));
-  o->y=0;
-  o->x=0;
-  o->rows=2;
-  o->cols=80;
-
-  struct ncplane *debug_ui = ncplane_create(stdplane, o);
+  V2 dims = V2(0, 0);
+  V2 cSz = V2(cY, cX);
   ncplane_pixel_geom(board->plane, &dims.y, &dims.x, NULL, NULL, NULL, NULL);
   notcurses_render(nc);
 
-  struct input_handler_arg args = {.nc=nc, .cell_size=cSz, .dims=dims, .debug=debug};
+  struct input_handler_arg args = {.nc = nc, .cell_size = cSz, .dims = dims};
   iTHREAD(t, attr_t, arg_t, args);
   rTHREAD(t, attr_t, handle_input, arg_t);
 
-  // double rotation = 0.1;
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
 
@@ -97,16 +89,11 @@ int main(int c, char **v) {
     if (stop_exec_mutex) {
       break;
     }
-
     ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
     replace_stamp_buffer(board, &fb);
-    // ncvisual_rotate(board->visual, rotation);
-    // rotation += 0.1;
     draw(&fb);
     blit_stamp(nc, board);
-    ncplane_home(debug_ui);
-    ncplane_putstr(debug_ui, debug);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);
   }
@@ -117,6 +104,7 @@ int main(int c, char **v) {
 ret:
   pthread_join(t, NULL);
   free_stamp(board);
+  if (game_board != NULL) freeBoard();
   if (nc != NULL) notcurses_stop(nc);
   if (fb.buf != NULL) free_fb(&fb);
   printf("Gracefully shutdown...\n");

@@ -8,7 +8,23 @@ ui get_cellSize(FrameBuffer *fb, ui cellsPerRow) {
   return min / cellsPerRow;
 }
 
-void draw_rectangle(FrameBuffer *fb, uint32_t color, V2 pos, V2 sz) {
+void draw_rectangle(FrameBuffer *fb, uint32_t color, V2 pos, V2 sz, ui border_width) {
+  ui bound = fb->dim.x * fb->dim.y;
+  for (ui y = pos.y; y < (pos.y + sz.y); y++) {
+    ui _y = (fb->dim.x * y);
+    for (ui x = pos.x; x < (pos.x + sz.x); x++) {
+      ui location = _y + x;
+      if (location < bound) {
+        if(x <= pos.x+border_width || x >= ((pos.x+sz.x)-border_width) ||
+           y <= pos.y +border_width || y >= (pos.y+sz.y-border_width)){
+            fb->buf[location] = color;
+        }
+      }
+    }
+  }
+}
+
+void fill_rectangle(FrameBuffer *fb, uint32_t color, V2 pos, V2 sz) {
   ui bound = fb->dim.x * fb->dim.y;
   for (ui y = pos.y; y < (pos.y + sz.y); y++) {
     ui _y = (fb->dim.x * y);
@@ -27,11 +43,11 @@ void draw_board(FrameBuffer *fb, ui cellsPerRow) {
     for (ui x = 0; x < cellsPerRow; x++) {
       uint32_t color;
       if (y % 2 == x % 2) {
-        color = 0xFFFFFFFF;
+        color = WHITE_CELL;
       } else {
-        color = 0xFF000000;
+        color = BLACK_CELL;
       }
-      draw_rectangle(fb, color, V2(y * cellSize, x * cellSize), v2(cellSize));
+      fill_rectangle(fb, color, V2(y * cellSize, x * cellSize), v2(cellSize));
     }
   }
 }
@@ -57,4 +73,9 @@ void draw_pawn(FrameBuffer *fb, uint32_t color, ui r, V2 cellPos,
   ui xPos = (cellPos.x * cellSize) + (cellSize / 2);
   ui yPos = (cellPos.y * cellSize) + (cellSize / 2);
   draw_circle(fb, color, r, V2(yPos, xPos));
+}
+
+void draw_reach(FrameBuffer *fb, uint32_t color, V2 cellPos, ui cellsPerRow){
+  ui cellSize = fb->dim.x/cellsPerRow;
+  draw_rectangle(fb, color, V2(cellPos.y*cellSize, cellPos.x*cellSize), v2(cellSize), 4);
 }

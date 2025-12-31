@@ -1,11 +1,13 @@
 #include "board.h"
+#include "draw.h"
 #include "types.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 /* TODO: use bytefields */
-static u8 board[100] = {};
+static u8 *board; 
 static int currPlayer = 1;
 static int currPawn = -1;
 static bool currPawnIsKing = false;
@@ -51,8 +53,9 @@ bool isIdxBlack(u8 idx) { return getRow(idx) % 2 != getCol(idx) % 2; }
 bool isIdxTopTerritory(u8 idx) { return getRow(idx) < 4; }
 bool isIdxBotTerritory(u8 idx) { return getRow(idx) > 5; }
 
-void initBoard() {
-  for (int i = 0; i < 100; i++) {
+void initBoard(ui col, ui row) {
+  board=malloc(col*row*sizeof(u8));
+  for (ui i = 0; i < col*row; i++) {
     if (isIdxBlack(i)) {
       board[i] = isIdxBotTerritory(i) ? 1 : isIdxTopTerritory(i) ? 2 : 0;
     } else {
@@ -61,25 +64,27 @@ void initBoard() {
   }
 }
 
+void freeBoard(){
+  free(board);
+}
+
 uint32_t handleColor(int col, int row, u8 player) {
   bool isCurr = isCurrentPawn(col, row);
   bool isKing = isKingPawn(col, row);
   uint32_t color;
   if (player % 2 == 1) {
-    color = 0xFFFFFFFF;
+    color = WHITE_PAWN;
+    if (isCurr) 
+      color = CURR_WHITE;
     if (isKing)
-      color = 0xFFFFAAFF;
-    if (isCurr) {
-      color = 0xFFFF8833;
-    }
+      color = WHITE_KING;
 
   } else {
-    color = 0xFF003388;
+    color = BLACK_PAWN;
+    if (isCurr) 
+      color = CURR_BLACK;
     if (isKing)
-      color = 0xFF008888;
-    if (isCurr) {
-      color = 0xFF0033FF;
-    }
+      color = BLACK_KING;
   }
   return color;
 }
@@ -100,3 +105,4 @@ void handlePromotion() {
     }
   }
 }
+

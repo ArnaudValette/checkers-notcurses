@@ -29,7 +29,9 @@ bool isIdxBlack(u8 idx);
 bool isIdxTopTerritory(u8 idx);
 bool isIdxBotTerritory(u8 idx);
 
-void initBoard();
+void initBoard(ui row, ui col);
+void freeBoard();
+
 uint32_t handleColor(int col, int row, u8 player);
 void movePawn(int s, int t);
 

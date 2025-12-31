@@ -2,7 +2,6 @@
 #include "logic.h"
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
-#include <stdio.h>
 
 void blank_state() {
   resetReach();
@@ -10,7 +9,7 @@ void blank_state() {
 }
 
 /* May not work under different blitters (works for NCBLIT_PIXEL) */
-bool handle_actions(ncinput *ni, V2 cell_size, V2 dims, char *debug) {
+bool handle_actions(ncinput *ni, V2 cell_size, V2 dims) {
   bool ui_changed = false;
   if (ni->id == NCKEY_BUTTON1) {
     ui x = ni->xpx + ni->x * cell_size.x;
@@ -20,9 +19,9 @@ bool handle_actions(ncinput *ni, V2 cell_size, V2 dims, char *debug) {
       u8 row = (y / (dims.y / 10));
       int pawn = col + row * 10;
       if (col < 10 && row < 10) {
-        snprintf(debug, 256, "col: %d, row: %d \n", col, row);
+
+        ui_changed = true;
         if (isPlayerPawn(col, row)) {
-          ui_changed = true;
           setCurrPawn(pawn);
           int currPawnIsKing = isKingPawn(col, row);
           setKingPawn(currPawnIsKing);
@@ -39,7 +38,7 @@ bool handle_actions(ncinput *ni, V2 cell_size, V2 dims, char *debug) {
           }
 
         } else if (isReachable(col, row)) {
-          ui_changed = true;
+
           if (isKillingMoveOption(col, row)) {
             Move *m = &getKillBuffer()[col + row * 10];
             do {
