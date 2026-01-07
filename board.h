@@ -33,6 +33,7 @@ void initBoard(ui row, ui col);
 void freeBoard();
 
 uint32_t handleColor(int col, int row, u8 player);
+uint32_t handlePawnType(int col, int row, u8 player);
 void movePawn(int s, int t);
 
 void handlePromotion();

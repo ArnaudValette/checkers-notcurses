@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 /* TODO: use bytefields */
-static u8 *board; 
+static u8 *board;
 static int currPlayer = 1;
 static int currPawn = -1;
 static bool currPawnIsKing = false;
@@ -54,8 +54,8 @@ bool isIdxTopTerritory(u8 idx) { return getRow(idx) < 4; }
 bool isIdxBotTerritory(u8 idx) { return getRow(idx) > 5; }
 
 void initBoard(ui col, ui row) {
-  board=malloc(col*row*sizeof(u8));
-  for (ui i = 0; i < col*row; i++) {
+  board = malloc(col * row * sizeof(u8));
+  for (ui i = 0; i < col * row; i++) {
     if (isIdxBlack(i)) {
       board[i] = isIdxBotTerritory(i) ? 1 : isIdxTopTerritory(i) ? 2 : 0;
     } else {
@@ -64,8 +64,32 @@ void initBoard(ui col, ui row) {
   }
 }
 
-void freeBoard(){
-  free(board);
+void freeBoard() { free(board); }
+
+uint32_t handlePawnType(int col, int row, u8 player) {
+  bool isCurr = isCurrentPawn(col, row);
+  bool isKing = isKingPawn(col, row);
+  uint32_t color;
+  if (player % 2 == 1) {
+    color = SPRITE_WHITE_PAWN;
+    if (isKing && isCurr) {
+      color = SPRITE_CURR_WHITE_KING;
+    } else if (isCurr) {
+      color = SPRITE_CURR_WHITE;
+    } else if (isKing) {
+      color = SPRITE_WHITE_KING;
+    }
+  } else {
+    color = SPRITE_BLACK_PAWN;
+    if (isKing && isCurr) {
+      color = SPRITE_CURR_BLACK_KING;
+    } else if (isCurr) {
+      color = SPRITE_CURR_BLACK;
+    } else if (isKing) {
+      color = SPRITE_BLACK_KING;
+    }
+  }
+  return color;
 }
 
 uint32_t handleColor(int col, int row, u8 player) {
@@ -74,17 +98,13 @@ uint32_t handleColor(int col, int row, u8 player) {
   uint32_t color;
   if (player % 2 == 1) {
     color = WHITE_PAWN;
-    if (isCurr) 
-      color = CURR_WHITE;
-    if (isKing)
-      color = WHITE_KING;
+    if (isCurr) color = CURR_WHITE;
+    if (isKing) color = WHITE_KING;
 
   } else {
     color = BLACK_PAWN;
-    if (isCurr) 
-      color = CURR_BLACK;
-    if (isKing)
-      color = BLACK_KING;
+    if (isCurr) color = CURR_BLACK;
+    if (isKing) color = BLACK_KING;
   }
   return color;
 }
@@ -105,4 +125,3 @@ void handlePromotion() {
     }
   }
 }
-
