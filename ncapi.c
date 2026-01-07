@@ -4,6 +4,8 @@
 #include <notcurses/notcurses.h>
 #include <stdint.h>
 
+ncblitter_e selected_blit=NCBLIT_DEFAULT;
+
 struct notcurses *init() {
   setlocale(LC_ALL, "");
   /*
@@ -14,6 +16,10 @@ struct notcurses *init() {
   notcurses_options opts = {.flags = NCOPTION_SUPPRESS_BANNERS,
                             .loglevel = NCLOGLEVEL_SILENT};
   struct notcurses *nc = notcurses_init(&opts, stdout);
+  ncpixelimpl_e px_support = notcurses_check_pixel_support(nc);
+  if(px_support != NCPIXEL_NONE){
+    selected_blit = NCBLIT_PIXEL;
+  }
   if (nc == NULL) return NULL;
   int code = notcurses_mice_enable(nc, NCMICE_MOVE_EVENT | NCMICE_BUTTON_EVENT);
   if (code == -1) return NULL;
@@ -49,7 +55,7 @@ Stamp *replace_stamp_buffer(Stamp *s, FrameBuffer *buffer) {
     ncvisual_destroy(s->visual);
   }
   s->vopts = (struct ncvisual_options){
-      .n = s->plane, .scaling = NCSCALE_SCALE, .blitter = NCBLIT_PIXEL};
+      .n = s->plane, .scaling = NCSCALE_SCALE_HIRES, .blitter = selected_blit};
 
   struct ncvisual *nc = ncvisual_from_rgba(buffer->buf, buffer->dim.y,
                                            buffer->dim.x * 4, buffer->dim.x);

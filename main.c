@@ -72,12 +72,15 @@ int main(int c, char **v) {
 
   V2 dims = V2(0, 0);
   V2 cSz = V2(cY, cX);
-  ncplane_pixel_geom(board->plane, &dims.y, &dims.x, NULL, NULL, NULL, NULL);
+  ncvgeom visgeom;
+  ncvisual_geom(nc, board->visual, &board->vopts, &visgeom);
+  dims.x = visgeom.rcellx * cX;
+  dims.y = visgeom.rcelly * cY;
   notcurses_render(nc);
 
   struct input_handler_arg args = {.nc = nc, .cell_size = cSz, .dims = dims};
-  iTHREAD(t, attr_t, arg_t, args);
-  rTHREAD(t, attr_t, handle_input, arg_t);
+  iTHREAD(t, attr_t);
+  rTHREAD(t, attr_t, handle_input, args);
 
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
