@@ -1,4 +1,5 @@
 #include "input.h"
+#include "debug.h"
 #include "globals.h"
 #include "interaction.h"
 #include <notcurses/notcurses.h>
@@ -37,6 +38,7 @@ void *handle_input(void *_arg) {
 
     if (ui_changed(&ni, ctx->cell_size, ctx->dims)) {
       ui_dirty_mutex = 1;
+      debug_log("ui_dirty triggered by event\n");
       pthread_cond_broadcast(&poll_cv);
     }
     pthread_mutex_unlock(&poll_mtx);
