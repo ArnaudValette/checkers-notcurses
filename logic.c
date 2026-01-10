@@ -3,12 +3,86 @@
 #include "types.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 /* Max number of different paths in a checkers turn ? */
 static bool reach[100] = {};
 static Move kills[100] = {};
+Rule *rules=NULL;
+int n_rules=0;
+
+bool initRules(){
+  /* because we want rules to be modified on the fly during the game */
+  rules = malloc(128*sizeof(Rule));
+  if(rules==NULL) return false;
+
+  /* Basic rules for pawns */
+  Rule pawn_kill_front_right = {.kill_location=V2(1,1),.end_location=V2(2,2), .target_cell=TCell_empty, .type=Rule_killing_move_hookable};
+  Rule pawn_kill_front_left = {.kill_location=V2(1,-1),.end_location=V2(2,-2), .target_cell=TCell_empty, .type=Rule_killing_move_hookable};
+  rules[n_rules++] = pawn_kill_front_right; 
+  rules[n_rules++] = pawn_kill_front_left;
+
+  Rule pawn_kill_back_right = {.kill_location=V2(-1,1),.end_location=V2(-2,2), .target_cell=TCell_empty, .type=Rule_killing_move_hookable};
+  Rule pawn_kill_back_left = {.kill_location=V2(-1,-1),.end_location=V2(-2,-2), .target_cell=TCell_empty, .type=Rule_killing_move_hookable};
+  rules[n_rules++] = pawn_kill_back_left;
+  rules[n_rules++] = pawn_kill_back_right;
+
+  Rule pawn_move_front_right = {.kill_location=V2(0,0),.end_location=V2(1,1), .target_cell=TCell_empty, .type=Rule_pacific_move};
+  Rule pawn_move_front_left = {.kill_location=V2(0,0),.end_location=V2(1,-1), .target_cell=TCell_empty, .type=Rule_pacific_move};
+  rules[n_rules++] = pawn_move_front_left;
+  rules[n_rules++] = pawn_move_front_right;
+
+  /*
+  Rule pawn_move_front = {.kill_location=V2(0,0),.end_location=V2(1,0), .target_cell=TCell_empty, .type=Rule_pacific_move};
+  rules[n_rules++] = pawn_move_front;
+  */
+
+  return true;
+}
+
+void destroy_rules(){
+  if(rules != NULL){
+    free(rules);
+  }
+}
+
+void handle_rules(ui c){
+
+  /* Process Rule_pacific_move first,
+   * then Rule_killing_move_hookable:
+   * if two rules have the same effect,
+   * favor the killing one.
+   */
+
+  int player = getCurrPlayer(); // 1 or 2
+  int dir = ((player-1) << 1) - 1; // -1 or 1
+  ui col =c%10;
+  ui row=c/10;
+
+  for(int i = 0; i < n_rules; i++){
+    Rule curr = rules[i];
+    if(curr.type == Rule_pacific_move){
+      V2 target_cell = curr.end_location;
+      Target_cell_state target_type = curr.target_cell;
+      target_cell.y = (target_cell.y * dir) + row;
+      target_cell.x = target_cell.x + col;
+      if(target_cell.y < 10  && target_cell.x < 10){
+        /* valid move */
+        ui scalar_cell = target_cell.y*10 + target_cell.x;
+        u8 val = getBoard()[scalar_cell];
+        if(target_type == TCell_empty && val == 0){
+          reach[scalar_cell] = true;
+        } else if(target_type == TCell_occupied && val != 0){
+          reach[scalar_cell] = true;
+        }
+      }
+    }
+  }
+
+}
+
 
 Move *getKillBuffer() { return kills; }
 
