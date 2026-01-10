@@ -3,3 +3,5 @@ game
 oldmain.c
 nohup.out
 *.ase
+debug
+debug.sh
