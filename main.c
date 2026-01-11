@@ -5,6 +5,7 @@
 #include "input.h"
 #include "logic.h"
 #include "ncapi.h"
+#include "rules_provider.h"
 #include "types.h"
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
@@ -24,8 +25,8 @@ void draw(FrameBuffer *fb) {
     int x = i % N_CELLS;
     u8 val = game_board[i];
     if (val > 0) {
-      //draw_pawn(fb, handleColor(x, y, val), 20, V2(y, x), N_CELLS);
-      draw_pawn_sprite(fb, handlePawnType(x,y,val), V2(y,x), N_CELLS);
+      // draw_pawn(fb, handleColor(x, y, val), 20, V2(y, x), N_CELLS);
+      draw_pawn_sprite(fb, handlePawnType(x, y, val), V2(y, x), N_CELLS);
     }
     if (i != getCurrPawn()) {
       if (isReachable(i % 10, i / 10)) {
@@ -50,7 +51,7 @@ int main(int c, char **v) {
   (void)c;
   (void)v;
 
-  bool thread_init=false;
+  bool thread_init = false;
   ui x, y, cX, cY;
   struct notcurses *nc = NULL;
   struct ncplane *stdplane = NULL;
@@ -64,7 +65,6 @@ int main(int c, char **v) {
 
   init_spritesheet();
   initBoard(10, 10);
-  if(!initRules()) goto ret;
   if (!prepare_fb(&fb, v2(600))) goto ret;
 
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
@@ -85,7 +85,7 @@ int main(int c, char **v) {
   struct input_handler_arg args = {.nc = nc, .cell_size = cSz, .dims = dims};
   iTHREAD(t, attr_t);
   rTHREAD(t, attr_t, handle_input, args);
-  thread_init=true;
+  thread_init = true;
 
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
@@ -111,7 +111,7 @@ int main(int c, char **v) {
   goto ret;
 
 ret:
-  if(thread_init) pthread_join(t, NULL);
+  if (thread_init) pthread_join(t, NULL);
   free_stamp(board);
   if (game_board != NULL) freeBoard();
   if (nc != NULL) notcurses_stop(nc);
