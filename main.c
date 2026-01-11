@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "debug.h"
 
 #define N_CELLS (10)
 
@@ -105,7 +104,6 @@ int main(int c, char **v) {
     replace_stamp_buffer(board, &fb);
     blit_stamp(nc, board);
     notcurses_render(nc);
-    debug_log("ui_dirty received by main loop\n");
     pthread_mutex_lock(&poll_mtx);
   }
   pthread_mutex_unlock(&poll_mtx);
