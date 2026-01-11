@@ -64,7 +64,10 @@ void initBoard(ui col, ui row) {
   }
 }
 
-void freeBoard() { free(board); }
+void freeBoard() {
+  free(board);
+  board=NULL;
+}
 
 uint32_t handlePawnType(int col, int row, u8 player) {
   bool isCurr = isCurrentPawn(col, row);

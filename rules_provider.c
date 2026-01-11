@@ -1,5 +1,4 @@
 #include "rules_provider.h"
-#include "logic.h"
 #include <stdlib.h>
 
 Rule *rules = NULL;
@@ -89,6 +88,7 @@ Rule *get_basic_rules(int *n) {
 void destroy_rules() {
   if (rules != NULL) {
     free(rules);
+    rules = NULL;
   }
   n_rules = 0;
 }

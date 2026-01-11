@@ -45,7 +45,10 @@ bool prepare_fb(FrameBuffer *fb, V2 sz) {
   return 1;
 }
 
-void free_fb(FrameBuffer *fb) { free(fb->buf); }
+void free_fb(FrameBuffer *fb) {
+  free(fb->buf);
+  fb->buf = NULL;
+}
 
 int main(int c, char **v) {
   (void)c;
