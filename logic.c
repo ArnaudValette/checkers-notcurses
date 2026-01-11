@@ -20,28 +20,38 @@ void handle_rules(ui c) {
   int n_rules = 0;
   Rule *rules = get_basic_rules(&n_rules);
 
-  int player = getCurrPlayer();      // 1 or 2
-  int dir = ((player - 1) << 1) - 1; // -1 or 1
+  int player = getCurrPlayer(); // 1 or 2
+  int dir = player == 1 ? 1 : -1;
   ui col = c % 10;
   ui row = c / 10;
+  bool king = isKingPawn(col, row);
 
   for (int i = 0; i < n_rules; i++) {
-
     Rule curr = rules[i];
-    if (curr.type == Rule_pacific_move) {
-      V2 target_cell = curr.end_location;
-      Target_cell_state target_type = curr.target_cell;
-      target_cell.y = (target_cell.y * dir) + row;
-      target_cell.x = target_cell.x + col;
-      if (target_cell.y < 10 && target_cell.x < 10) {
-        /* valid move */
-        ui scalar_cell = target_cell.y * 10 + target_cell.x;
-        u8 val = getBoard()[scalar_cell];
-        if (target_type == TCell_empty && val == 0) {
-          reach[scalar_cell] = true;
-        } else if (target_type == TCell_occupied && val != 0) {
-          reach[scalar_cell] = true;
+    bool is_bind_coherent =
+        (king && curr.bind == King_bound) || (!king && curr.bind == Pawn_bound);
+    if (is_bind_coherent) {
+      if (curr.type == Rule_pacific_move) {
+        V2 target_cell = curr.end_location;
+        Target_cell_state target_type = curr.target_cell;
+        target_cell.y = (target_cell.y * dir) + row;
+        target_cell.x = target_cell.x + col;
+        if (target_cell.y < 10 && target_cell.x < 10) {
+          ui scalar_cell = target_cell.y * 10 + target_cell.x;
+          u8 val = getBoard()[scalar_cell];
+          bool recurse = false;
+          if (target_type == TCell_empty && val == 0) {
+            reach[scalar_cell] = true;
+            recurse = true;
+          } else if (target_type == TCell_occupied && val != 0) {
+            reach[scalar_cell] = true;
+            recurse = true;
+          }
+          if (recurse && curr.next_type != Next_null) {
+            /* recurse */
+          }
         }
+      } else if (curr.type == Rule_killing_move) {
       }
     }
   }
