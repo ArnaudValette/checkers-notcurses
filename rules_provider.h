@@ -5,8 +5,16 @@
 
 typedef enum {MD_F, MD_FR, MD_R, MD_BR, MD_B, MD_BL, MD_L, MD_FL} Move_direction;
 typedef enum {TCell_empty, TCell_occupied, TCell_killed} Target_cell_state;
-typedef enum {Rule_killing_move_hookable, Rule_pacific_move} Rule_type;
-typedef enum {Next_pacific, Next_null, Next_any, Next_any_same_direction, Next_killing} Next_type;
+
+typedef enum {Rule_killing_move, Rule_pacific_move} Rule_type;
+
+typedef enum {
+  Next_null = 0,
+  Next_pacific_any_direction=1<<0,
+  Next_killing_any_direction=1<<1,
+  Next_pacific_same_direction=1<<2,
+  Next_killing_same_direction=1<<3,
+} Next_type;
 typedef enum {King_bound, Pawn_bound} Bind_type;
 
 typedef struct rule{
