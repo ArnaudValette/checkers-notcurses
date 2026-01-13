@@ -11,6 +11,62 @@
 static bool reach[100] = {};
 static Move kills[100] = {};
 
+void recurse_rules(Rule prev, ui new_col, ui new_row, bool is_king, int player,
+                   int dir, int n_rules, Rule *rules) {
+  Next_type expecting = prev.next_type;
+  for (int i = 0; i < n_rules; i++) {
+    Rule curr = rules[i];
+
+    bool is_bind_coherent = (curr.bind == King_bound && is_king) ||
+                            (curr.bind == Pawn_bound && !is_king);
+    if (!is_bind_coherent) continue;
+
+    bool meets_expectation = false;
+    V2 back_cell = prev.end_location;
+    back_cell.y = new_row - (back_cell.y * dir);
+    back_cell.x = new_col - (back_cell.x * dir);
+
+    V2 target_cell = curr.end_location;
+    target_cell.y = (target_cell.y * dir) + new_row;
+    target_cell.x = (target_cell.x * dir) + new_col;
+
+    if (target_cell.y >= 10 || target_cell.x >= 10) continue;
+
+    if (curr.type == Rule_killing_move) {
+
+      meets_expectation = (prev.next_type & Next_killing_any_direction) ||
+                          ((prev.next_type & Next_killing_same_direction) &&
+                           prev.direction == curr.direction);
+      if (!meets_expectation) continue;
+
+      V2 killing_cell = curr.kill_location;
+      killing_cell.y = (killing_cell.y * dir) + new_row;
+      killing_cell.x = (killing_cell.x * dir) + new_row;
+      if (killing_cell.y >= 10 || killing_cell.x >= 10) continue;
+
+      ui scalar_kill = (killing_cell.y * 10) + killing_cell.x;
+      if (!isOpponentPawnOrKing(scalar_kill)) continue;
+
+      if (prev.type == Rule_killing_move) {
+        V2 prev_kill = V2(new_row, new_col);
+        prev_kill.y = back_cell.y + (dir * prev.kill_location.y);
+        prev_kill.x = back_cell.x + (dir * prev.kill_location.x);
+
+        ui scalar_prev_kill = (prev_kill.y * 10) + prev_kill.x;
+      }
+
+    } else if (curr.type == Rule_pacific_move) {
+      meets_expectation = (prev.next_type & Next_pacific_any_direction) ||
+                          ((prev.next_type & Next_pacific_same_direction) &&
+                           prev.direction == curr.direction);
+      if (meets_expectation) {
+        /* Handling moves (maybe this is a general case and should go out of
+         * this scope)*/
+      }
+    }
+  }
+}
+
 void handle_rules(ui c) {
   /* Process Rule_pacific_move first,
    * then Rule_killing_move_hookable:
@@ -20,7 +76,7 @@ void handle_rules(ui c) {
   int n_rules = 0;
   Rule *rules = get_basic_rules(&n_rules);
 
-  int player = getCurrPlayer(); // 1 or 2
+  int player = getCurrPlayer();
   int dir = player == 1 ? 1 : -1;
   ui col = c % 10;
   ui row = c / 10;
@@ -39,15 +95,15 @@ void handle_rules(ui c) {
         if (target_cell.y < 10 && target_cell.x < 10) {
           ui scalar_cell = target_cell.y * 10 + target_cell.x;
           u8 val = getBoard()[scalar_cell];
-          bool recurse = false;
+          bool is_valid_move = false;
           if (target_type == TCell_empty && val == 0) {
             reach[scalar_cell] = true;
-            recurse = true;
+            is_valid_move = true;
           } else if (target_type == TCell_occupied && val != 0) {
             reach[scalar_cell] = true;
-            recurse = true;
+            is_valid_move = true;
           }
-          if (recurse && curr.next_type != Next_null) {
+          if (is_valid_move && curr.next_type != Next_null) {
             /* recurse */
           }
         }
@@ -94,8 +150,7 @@ void handleKillingMoves(u8 c, Move *prev) {
 
   for (u8 i = 0; i < 4; i++) {
     if (flag[i]) {
-      if (kills[ai[i]].cell == _NONMOVE && kills[ai[i]].cell != _PREKILL &&
-          ai[i] != getCurrPawn()) {
+      if (kills[ai[i]].cell == _NONMOVE && ai[i] != getCurrPawn()) {
         if (isOpponentPawnOrKing(getBoard()[xi[i]])) {
           if (getBoard()[ai[i]] == 0) {
             reach[ai[i]] = true;

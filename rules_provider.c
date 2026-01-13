@@ -1,4 +1,6 @@
 #include "rules_provider.h"
+#include "board.h"
+#include "types.h"
 #include <stdlib.h>
 
 Rule *rules = NULL;
@@ -152,4 +154,36 @@ void destroy_rules() {
     rules = NULL;
   }
   n_rules = 0;
+}
+
+bool is_OOB(V2 pos, int dir, Rule *rule) {
+  if (rule->type == Rule_killing_move) {
+    ui x_bound = pos.x + (dir * rule->kill_location.x);
+    ui y_bound = pos.y + (dir * rule->kill_location.y);
+    if (x_bound >= 10 || y_bound >= 10) {
+      return true;
+    }
+  }
+  ui x_bound = pos.x + (dir * rule->end_location.x);
+  ui y_bound = pos.y + (dir * rule->end_location.y);
+  return (x_bound >= 10 || y_bound >= 10);
+}
+
+bool _is_applicable(V2 pos, int dir, Rule *rule, u8 *board) {
+  if (is_OOB(pos, dir, rule)) return false;
+  ui scalar_pos =
+      ((pos.y + rule->end_location.y) * 10) + (pos.x + rule->end_location.x);
+  ui scalar_kill =
+      ((pos.y + rule->kill_location.y) * 10) + (pos.x + rule->kill_location.x);
+  if (rule->type == Rule_killing_move) {
+    /* TODO decoupling */
+    if (!isOpponentPawnOrKing(board[scalar_kill])) return false;
+  }
+  return board[scalar_pos] == 0 || rule->target_cell == TCell_empty;
+}
+
+void build_branch() {}
+
+void apply_rule(V2 pos, int dir, Rule *rule, u8 *board) {
+  if (!_is_applicable(pos, dir, rule, board)) return;
 }
