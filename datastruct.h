@@ -244,6 +244,13 @@ static int deque_push(deque *a, void *data) {
 ╭╯ datastructures § hashmap → macro based implementation                    ╭╯╿
 ╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
 
+/* xxHash 64-bit primes */
+static const uint64_t PRIME64_1 = 0x9E3779B185EBCA87ull;
+static const uint64_t PRIME64_2 = 0xC2B2AE3D27D4EB4Full;
+static const uint64_t PRIME64_3 = 0x165667B19E3779F9ull;
+static const uint64_t PRIME64_4 = 0x85EBCA77C2B2AE63ull;
+static const uint64_t PRIME64_5 = 0x27D4EB2F165667C5ull;
+
 #define HASHMAP(kType, vType, name)\
 typedef struct name{ \
   kType key; \
@@ -252,7 +259,32 @@ typedef struct name{ \
 } name; \
 typedef struct{ \
   name **entries; \
-} name##_map;
+  uint64_t seed; \
+} \
+name##_map;
+
+/*
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ datastructures § hashmap → (void *) based implementation                 ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+
+typedef struct entry {
+  char *key;
+  void *value;
+  struct entry *next;
+} entry;
+
+typedef struct {
+  entry **buckets;
+  uint64_t seed;
+} hashmap;
+
+/*
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ datastructures § hashmap → hash functions                                ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+
+static uint64_t hash(void *key, size_t len, uint64_t seed) {}
 
 /*
 ╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
