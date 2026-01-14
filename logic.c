@@ -7,10 +7,43 @@
 #include <string.h>
 #include <unistd.h>
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Logic → Initializers & utils                                      ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 /* Max number of different paths in a checkers turn ? */
 static bool reach[100] = {};
 static Move kills[100] = {};
 
+
+void setReach(u8 idx, bool value) { reach[idx] = value; }
+
+Move *getKillBuffer() { return kills; }
+
+void resetReach() {
+  for (int i = 0; i < 100; i++) {
+    reach[i] = false;
+  }
+}
+
+void resetKills() {
+  for (int i = 0; i < 100; i++) {
+    kills[i] = (Move){_NONMOVE, 0, NULL};
+  }
+}
+
+bool isKillingMoveOption(u8 col, u8 row) {
+  return kills[col + row * 10].cell != _NONMOVE;
+}
+
+bool isReachable(u8 col, u8 row) { return reach[col + row * 10]; }
+
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Logic → CORE                                                      ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 void recurse_rules(Rule prev, ui new_col, ui new_row, bool is_king, int player,
                    int dir, int n_rules, Rule *rules) {
   Next_type expecting = prev.next_type;
@@ -113,26 +146,6 @@ void handle_rules(ui c) {
   }
 }
 
-Move *getKillBuffer() { return kills; }
-
-void resetReach() {
-  for (int i = 0; i < 100; i++) {
-    reach[i] = false;
-  }
-}
-
-void resetKills() {
-  for (int i = 0; i < 100; i++) {
-    kills[i] = (Move){_NONMOVE, 0, NULL};
-  }
-}
-
-bool isKillingMoveOption(u8 col, u8 row) {
-  return kills[col + row * 10].cell != _NONMOVE;
-}
-
-bool isReachable(u8 col, u8 row) { return reach[col + row * 10]; }
-
 void handleKillingMoves(u8 c, Move *prev) {
   u8 xi[] = {c - 11, c - 9, c + 11, c + 9};
   u8 ai[] = {c - 22, c - 18, c + 22, c + 18};
@@ -219,5 +232,3 @@ void handleMoves(u8 col, u8 row) {
   if (c1 == 0) reach[col - 1 + (row + dir) * 10] = true;
   if (c2 == 0) reach[col + 1 + (row + dir) * 10] = true;
 }
-
-void setReach(u8 idx, bool value) { reach[idx] = value; }

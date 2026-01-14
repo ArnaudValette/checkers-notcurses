@@ -6,6 +6,12 @@
 
 ncblitter_e selected_blit = NCBLIT_DEFAULT;
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ ncapi § notcurses → util                                                 ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
+
 struct notcurses *init() {
   setlocale(LC_ALL, "");
   /*
@@ -35,6 +41,11 @@ struct ncplane *stdplane_util(struct notcurses *nc, unsigned int *y,
   return stdplane;
 }
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ ncapi § Stamp → Implementation                                           ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 Stamp *stamp(struct ncplane *root, FrameBuffer *buffer, V2 pos,
              V2 size_cols_rows) {
   Stamp *s = malloc(sizeof(Stamp));
@@ -67,6 +78,7 @@ Stamp *replace_stamp_buffer(Stamp *s, FrameBuffer *buffer) {
 void blit_stamp(struct notcurses *nc, Stamp *s) {
   ncvisual_blit(nc, s->visual, &s->vopts);
 }
+
 
 void free_stamp(Stamp *s) {
   if (s != NULL) {

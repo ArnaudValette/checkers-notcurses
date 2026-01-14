@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Board → State & utils                                             ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
+
 /* TODO: use bytefields */
 static u8 *board;
 static int currPlayer = 1;
@@ -30,7 +36,6 @@ bool isOpponentPawnOrKing(int value) {
   }
 }
 
-void nextPlayer() { currPlayer = getOpponent(); }
 
 bool isPlayerPawn(u8 col, u8 row) {
   return board[row * 10 + col] > 0 &&
@@ -53,6 +58,35 @@ bool isIdxBlack(u8 idx) { return getRow(idx) % 2 != getCol(idx) % 2; }
 bool isIdxTopTerritory(u8 idx) { return getRow(idx) < 4; }
 bool isIdxBotTerritory(u8 idx) { return getRow(idx) > 5; }
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Board → actions                                                   ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
+void movePawn(int s, int t) {
+  board[t] = board[s];
+  board[s] = 0;
+}
+
+void handlePromotion() {
+  if (currPlayer == 1) {
+    if (currPawn / 10 == 0) {
+      board[currPawn] += 2;
+    }
+  } else {
+    if (currPawn / 10 == 9) {
+      board[currPawn] += 2;
+    }
+  }
+}
+
+void nextPlayer() { currPlayer = getOpponent(); }
+
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Board → memory management                                         ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 void initBoard(ui col, ui row) {
   board = malloc(col * row * sizeof(u8));
   for (ui i = 0; i < col * row; i++) {
@@ -68,6 +102,12 @@ void freeBoard() {
   free(board);
   board=NULL;
 }
+
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Game § Board → color handlers                                            ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 
 uint32_t handlePawnType(int col, int row, u8 player) {
   bool isCurr = isCurrentPawn(col, row);
@@ -112,19 +152,3 @@ uint32_t handleColor(int col, int row, u8 player) {
   return color;
 }
 
-void movePawn(int s, int t) {
-  board[t] = board[s];
-  board[s] = 0;
-}
-
-void handlePromotion() {
-  if (currPlayer == 1) {
-    if (currPawn / 10 == 0) {
-      board[currPawn] += 2;
-    }
-  } else {
-    if (currPawn / 10 == 9) {
-      board[currPawn] += 2;
-    }
-  }
-}
