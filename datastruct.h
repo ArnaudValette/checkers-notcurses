@@ -268,6 +268,7 @@ name##_map;
 ╭╯ datastructures § hashmap → (void *) based implementation                 ╭╯╿
 ╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
 
+/* *(hashmap+hash("yourKey")) */
 typedef struct entry {
   char *key;
   void *value;
