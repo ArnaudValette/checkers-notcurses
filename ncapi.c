@@ -4,7 +4,13 @@
 #include <notcurses/notcurses.h>
 #include <stdint.h>
 
-ncblitter_e selected_blit=NCBLIT_DEFAULT;
+ncblitter_e selected_blit = NCBLIT_DEFAULT;
+
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ ncapi § notcurses → util                                                 ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 
 struct notcurses *init() {
   setlocale(LC_ALL, "");
@@ -17,7 +23,7 @@ struct notcurses *init() {
                             .loglevel = NCLOGLEVEL_SILENT};
   struct notcurses *nc = notcurses_init(&opts, stdout);
   ncpixelimpl_e px_support = notcurses_check_pixel_support(nc);
-  if(px_support != NCPIXEL_NONE){
+  if (px_support != NCPIXEL_NONE) {
     selected_blit = NCBLIT_PIXEL;
   }
   if (nc == NULL) return NULL;
@@ -35,6 +41,11 @@ struct ncplane *stdplane_util(struct notcurses *nc, unsigned int *y,
   return stdplane;
 }
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ ncapi § Stamp → Implementation                                           ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 Stamp *stamp(struct ncplane *root, FrameBuffer *buffer, V2 pos,
              V2 size_cols_rows) {
   Stamp *s = malloc(sizeof(Stamp));
@@ -68,10 +79,18 @@ void blit_stamp(struct notcurses *nc, Stamp *s) {
   ncvisual_blit(nc, s->visual, &s->vopts);
 }
 
+
 void free_stamp(Stamp *s) {
   if (s != NULL) {
-    if (s->plane != NULL) ncplane_destroy(s->plane);
-    if (s->visual != NULL) ncvisual_destroy(s->visual);
+    if (s->plane != NULL) {
+      ncplane_destroy(s->plane);
+      s->plane = NULL;
+    }
+    if (s->visual != NULL) {
+      ncvisual_destroy(s->visual);
+      s->visual = NULL;
+    }
     free(s);
+    s = NULL;
   }
 }

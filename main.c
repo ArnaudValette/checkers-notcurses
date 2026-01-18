@@ -5,6 +5,7 @@
 #include "input.h"
 #include "logic.h"
 #include "ncapi.h"
+#include "rules_provider.h"
 #include "types.h"
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
@@ -24,8 +25,8 @@ void draw(FrameBuffer *fb) {
     int x = i % N_CELLS;
     u8 val = game_board[i];
     if (val > 0) {
-      //draw_pawn(fb, handleColor(x, y, val), 20, V2(y, x), N_CELLS);
-      draw_pawn_sprite(fb, handlePawnType(x,y,val), V2(y,x), N_CELLS);
+      // draw_pawn(fb, handleColor(x, y, val), 20, V2(y, x), N_CELLS);
+      draw_pawn_sprite(fb, handlePawnType(x, y, val), V2(y, x), N_CELLS);
     }
     if (i != getCurrPawn()) {
       if (isReachable(i % 10, i / 10)) {
@@ -44,13 +45,16 @@ bool prepare_fb(FrameBuffer *fb, V2 sz) {
   return 1;
 }
 
-void free_fb(FrameBuffer *fb) { free(fb->buf); }
+void free_fb(FrameBuffer *fb) {
+  free(fb->buf);
+  fb->buf = NULL;
+}
 
 int main(int c, char **v) {
   (void)c;
   (void)v;
 
-  bool thread_init=false;
+  bool thread_init = false;
   ui x, y, cX, cY;
   struct notcurses *nc = NULL;
   struct ncplane *stdplane = NULL;
@@ -64,7 +68,7 @@ int main(int c, char **v) {
 
   init_spritesheet();
   initBoard(10, 10);
-  if (!prepare_fb(&fb, v2(600))) goto ret;;
+  if (!prepare_fb(&fb, v2(600))) goto ret;
 
   stdplane = stdplane_util(nc, &y, &x, &cY, &cX);
 
@@ -84,11 +88,12 @@ int main(int c, char **v) {
   struct input_handler_arg args = {.nc = nc, .cell_size = cSz, .dims = dims};
   iTHREAD(t, attr_t);
   rTHREAD(t, attr_t, handle_input, args);
-  thread_init=true;
+  thread_init = true;
 
   pthread_mutex_lock(&poll_mtx);
   while (!stop_exec_mutex) {
 
+    /* Wait for modifying inputs (ui_dirty) */
     while (!stop_exec_mutex && !ui_dirty_mutex) {
       pthread_cond_wait(&poll_cv, &poll_mtx);
     }
@@ -98,8 +103,8 @@ int main(int c, char **v) {
     }
     ui_dirty_mutex = 0;
     pthread_mutex_unlock(&poll_mtx);
-    replace_stamp_buffer(board, &fb);
     draw(&fb);
+    replace_stamp_buffer(board, &fb);
     blit_stamp(nc, board);
     notcurses_render(nc);
     pthread_mutex_lock(&poll_mtx);
@@ -109,11 +114,12 @@ int main(int c, char **v) {
   goto ret;
 
 ret:
-  if(thread_init) pthread_join(t, NULL);
+  if (thread_init) pthread_join(t, NULL);
   free_stamp(board);
   if (game_board != NULL) freeBoard();
   if (nc != NULL) notcurses_stop(nc);
   if (fb.buf != NULL) free_fb(&fb);
+  destroy_rules();
   printf("Gracefully shutdown...\n");
   return 0;
 }

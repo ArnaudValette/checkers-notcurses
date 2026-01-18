@@ -19,6 +19,9 @@ typedef struct {
 
 typedef enum { _FREE = 0, _ENEMY, _FAIL, _SUCCESS } KingMoveStateFlag;
 
+
+void handle_rules(ui c);
+
 void setReach(u8 idx, bool value);
 void resetReach();
 void resetKills();
