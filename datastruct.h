@@ -1,11 +1,8 @@
 #ifndef DATASTRUCT_H
 #define DATASTRUCT_H
-#include <cstddef>
-#include <cstdint>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define DEQUE_INITIAL_SIZE 128
 
