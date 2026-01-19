@@ -2,16 +2,21 @@
 #include "logic.h"
 #include <notcurses/nckeys.h>
 #include <notcurses/notcurses.h>
+#include <unistd.h>
 
+/* 
+╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
+╭╯ Input § Interaction → Actions handling                                   ╭╯╿
+╙╼━╾┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄━━╪*/
+  
 void blank_state() {
   resetReach();
   resetKills();
 }
 
-/* May not work under different blitters (works for NCBLIT_PIXEL) */
 bool handle_actions(ncinput *ni, V2 cell_size, V2 dims) {
   bool ui_changed = false;
-  if (ni->id == NCKEY_BUTTON1) {
+  if (ni->id == NCKEY_BUTTON1 && ni->evtype == NCTYPE_PRESS) {
     ui x = ni->xpx + ni->x * cell_size.x;
     ui y = ni->ypx + ni->y * cell_size.y;
     if (x <= dims.x && y <= dims.y) {
@@ -22,6 +27,7 @@ bool handle_actions(ncinput *ni, V2 cell_size, V2 dims) {
 
         ui_changed = true;
         if (isPlayerPawn(col, row)) {
+          /* SELECT */
           setCurrPawn(pawn);
           int currPawnIsKing = isKingPawn(col, row);
           setKingPawn(currPawnIsKing);
@@ -29,16 +35,14 @@ bool handle_actions(ncinput *ni, V2 cell_size, V2 dims) {
           blank_state();
           setReach(pawn, true);
 
-          handleMoves(col, row);
+          handle_rules(col + row * 10);
+          // handleMoves(col, row);
           handleKillingMoves(pawn, &(Move){_NONMOVE, 0, NULL});
           if (currPawnIsKing) {
             handleKingKillingMoves(pawn);
-          } else {
-            handlePromotion();
           }
-
         } else if (isReachable(col, row)) {
-
+          /* PLAY */
           if (isKillingMoveOption(col, row)) {
             Move *m = &getKillBuffer()[col + row * 10];
             do {
@@ -46,6 +50,11 @@ bool handle_actions(ncinput *ni, V2 cell_size, V2 dims) {
             } while ((m = m->prev) != NULL);
           }
           movePawn(getCurrPawn(), col + row * 10);
+          if (!isKingPawn(col, row)) {
+            setCurrPawn(col + row * 10);
+            handlePromotion();
+            setCurrPawn(pawn);
+          }
 
           blank_state();
           nextPlayer();
