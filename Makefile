@@ -1,5 +1,5 @@
 CFLAGS += -Wall -Wextra -O2 -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
-LDFLAGS = -lm -lnotcurses -lnotcurses-core
+LDFLAGS = -lm -lnotcurses -lnotcurses-core -Iinclude
 
 SRC = main.c globals.c input.c ncapi.c board.c logic.c draw.c interaction.c debug.c rules_provider.c
 
