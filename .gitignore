@@ -6,3 +6,4 @@ nohup.out
 debug
 debug.sh
 js_proto
+*.h.old
