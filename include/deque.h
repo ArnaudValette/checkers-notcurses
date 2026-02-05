@@ -1,12 +1,12 @@
-#ifndef DEQUE_H
-#define DEQUE_H
+#ifndef DATASTRUCTURES_DEQUE_H
+#define DATASTRUCTURES_DEQUE_H
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#define DEQUE_INITIAL_SIZE 128
+#define DATASTRUCTURES_DEQUE_INITIAL_SIZE 128
 
-#ifndef DATASTRUCT_USE_VOID_BASED_DEQUE
+#ifndef DATASTRUCTURES_USE_VOID_BASED_DEQUE
 
 /*
 ╰┭━╾┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅╼━┮╮
@@ -26,7 +26,7 @@
     name##_deque *a = malloc(sizeof(name##_deque));                            \
     if (!a)                                                                    \
       return NULL;                                                             \
-    a->capacity = DEQUE_INITIAL_SIZE;                                          \
+    a->capacity = DATASTRUCTURES_DEQUE_INITIAL_SIZE;                           \
     a->data = malloc(a->capacity * sizeof(type *));                            \
     if (!a->data) {                                                            \
       free(a);                                                                 \
@@ -142,9 +142,8 @@ typedef struct deque {
 
 static deque *deque_create() {
   deque *a = malloc(sizeof(deque));
-  if (!a)
-    return NULL;
-  a->capacity = DEQUE_INITIAL_SIZE;
+  if (!a) return NULL;
+  a->capacity = DATASTRUCTURES_DEQUE_INITIAL_SIZE;
   a->data = malloc(a->capacity * sizeof(void *));
   if (!a->data) {
     free(a);
@@ -186,8 +185,7 @@ static inline int __deque_resize(deque *a) {
   size_t new_cap = a->capacity * 2;
 
   void **data = malloc(new_cap * sizeof(void *));
-  if (!data)
-    return 1;
+  if (!data) return 1;
 
   for (size_t i = 0; i < len; i++) {
     data[i] = a->data[(a->start + i) % a->capacity];
